@@ -1,42 +1,51 @@
-// C++ program to illustrate the client application in the
-// socket programming
-#include <cstring>
 #include <iostream>
-#include <netinet/in.h>
+#include <thread>
+#include <cstring>
+#include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 
-void sendMessage(int);
-
-int main()
-{
-    // creating socket
-    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-    // specifying address
-    sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(8080);
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
-
-    // sending connection request
-    connect(clientSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
-
-    // sending data
-    sendMessage(clientSocket);
+void receive_messages(int socket) {
     char buffer[1024];
-    read(clientSocket, buffer, 1024);
-    std::cout<<"Message : " << buffer << std::endl;
-
-    // closing socket
-    close(clientSocket);
-
-    return 0;
+    int valread;
+    while ((valread = read(socket, buffer, 1024)) > 0) {
+        buffer[valread] = '\0';
+        std::cout << "Message: " << buffer << std::endl;
+    }
 }
-void sendMessage(int clientSocket)
-{
+
+int main() {
+    int sock = 0;
+    struct sockaddr_in serv_addr;
+
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        std::cout << "Socket creation error\n";
+        return -1;
+    }
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(8080);
+
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        std::cout << "Invalid address/ Address not supported\n";
+        return -1;
+    }
+
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        std::cout << "Connection Failed\n";
+        return -1;
+    }
+
+    std::thread(receive_messages, sock).detach();
+
     std::string message;
-    std::cout << "Enter your message" << std::endl;
-    std::getline(std::cin, message);                          // Read the entire line of input
-    send(clientSocket, message.c_str(), message.length(), 0); // Convert string to C-style string and send
+    while (true) {
+        std::getline(std::cin, message);
+        send(sock, message.c_str(), message.length(), 0);
+    }
+
+    close(sock);
+    return 0;
 }
