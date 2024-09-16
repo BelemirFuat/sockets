@@ -1,0 +1,10 @@
+//to do:
+/*
+    1. username benzersiz olmalı.
+    2. client tarafına ne döndüğü ile ilgili daha fazla feedback verilmeli.
+    3. kullanıcılar ayrıldıklarında sunucuda görünmeli ve odaya bildirimi gitmeli.
+    4. geçmiş mesajlar saklanmalı ve yeni bir kullanıcı odaya geldiğinde geri yüklenmeli
+    5. oda seçme sorunu düzelmeli
+    6. broadcast mantığı değişebilir
+
+*/
